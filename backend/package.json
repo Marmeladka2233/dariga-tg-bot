@@ -1,0 +1,30 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Dariga studio Telegram bot backend",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "node ./node_modules/typescript/bin/tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "date-fns": "^4.4.0",
+    "dotenv": "^17.4.2",
+    "fastify": "^5.8.5",
+    "grammy": "^1.43.0",
+    "nanoid": "^5.1.11",
+    "undici": "^7.16.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.12.3",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.3"
+  }
+}

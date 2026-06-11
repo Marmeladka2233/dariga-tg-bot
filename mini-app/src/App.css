@@ -1,0 +1,257 @@
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 14px 28px;
+}
+
+.card,
+.hero-card,
+.info-card,
+.modal-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 14px 40px rgba(206, 80, 150, 0.12);
+}
+
+.hero-card,
+.card {
+  padding: 20px;
+}
+
+.hero-card {
+  background: linear-gradient(145deg, #fff3fb 0%, #ffe4f5 100%);
+}
+
+.info-card {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 20px;
+}
+
+.eyebrow,
+.section-kicker,
+.summary-label {
+  margin: 0;
+  color: var(--pink-strong);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero-text,
+.muted {
+  color: var(--text-soft);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.pill {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--pink-soft);
+  color: var(--pink-strong);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.date-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.date-chip,
+.slot-button,
+.primary-button,
+.secondary-button {
+  border: 1px solid transparent;
+  border-radius: 18px;
+  font: inherit;
+  transition:
+    transform 0.16s ease,
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    color 0.16s ease;
+}
+
+.date-chip,
+.slot-button {
+  background: #fff;
+  padding: 14px 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.date-chip span,
+.date-chip strong {
+  display: block;
+}
+
+.date-chip strong {
+  margin-top: 4px;
+  color: var(--text-main);
+}
+
+.date-chip.active,
+.slot-button.selected {
+  background: linear-gradient(135deg, #ff4fa0 0%, #ff7ebb 100%);
+  color: #fff;
+  border-color: #ff4fa0;
+}
+
+.date-chip.active strong,
+.slot-button.selected {
+  color: #fff;
+}
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.slot-button {
+  display: flex;
+  justify-content: center;
+  padding: 14px 8px;
+  font-weight: 700;
+}
+
+.slot-button.disabled {
+  background: #efedf1;
+  color: #9e96a6;
+  cursor: not-allowed;
+}
+
+.summary-box,
+.confirmation-box {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: #fff6fb;
+  border: 1px solid #ffd7ea;
+  margin-bottom: 16px;
+}
+
+.primary-button,
+.secondary-button {
+  width: 100%;
+  padding: 15px 16px;
+  font-weight: 700;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, #ff4fa0 0%, #ff7ebb 100%);
+  color: #fff;
+}
+
+.primary-button:disabled {
+  opacity: 0.55;
+}
+
+.secondary-button {
+  background: #fff;
+  border-color: #ffc4df;
+  color: var(--pink-strong);
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.field span {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.field input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ffcadf;
+  border-radius: 16px;
+  padding: 14px 16px;
+  font: inherit;
+  background: #fff;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(41, 12, 27, 0.48);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-card {
+  width: min(100%, 520px);
+  padding: 20px;
+}
+
+.modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.status {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  font-weight: 600;
+}
+
+.status.error {
+  background: #ffe7ee;
+  color: #b12d5e;
+}
+
+.status.success {
+  background: #ffeef8;
+  color: #9e2d7d;
+}
+
+@media (hover: hover) {
+  .date-chip:hover,
+  .slot-button:hover,
+  .primary-button:hover,
+  .secondary-button:hover {
+    transform: translateY(-1px);
+  }
+}
+
+@media (max-width: 720px) {
+  .info-card {
+    grid-template-columns: 1fr;
+  }
+
+  .date-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .slots-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .modal-actions {
+    grid-template-columns: 1fr;
+  }
+}
