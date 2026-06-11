@@ -1,6 +1,7 @@
 import { Bot, InlineKeyboard, type Context } from "grammy";
 
 import { appConfig, type AppConfig } from "./config";
+import { createTelegramProxyAgent } from "./lib/telegram-proxy";
 import {
   cancelBooking,
   formatBookingDateHuman,
@@ -127,7 +128,16 @@ export async function sendBookingConfirmation(bot: Bot, booking: BookingDetails)
 }
 
 export function createBot(config: AppConfig) {
-  const bot = new Bot(config.TELEGRAM_BOT_TOKEN);
+  const proxyAgent = createTelegramProxyAgent(config.TELEGRAM_PROXY);
+  const bot = new Bot(config.TELEGRAM_BOT_TOKEN, {
+    client: proxyAgent
+      ? {
+          baseFetchConfig: {
+            agent: proxyAgent,
+          },
+        }
+      : undefined,
+  });
 
   bot.command("start", async (ctx) => {
     await ctx.reply(getStartText(config), {

@@ -1,6 +1,6 @@
-import { ProxyAgent, setGlobalDispatcher } from "undici";
+import { HttpsProxyAgent } from "https-proxy-agent";
 
-function toProxyUrl(proxyValue: string) {
+export function toProxyUrl(proxyValue: string) {
   const trimmed = proxyValue.trim();
 
   if (!trimmed) {
@@ -24,13 +24,12 @@ function toProxyUrl(proxyValue: string) {
   return `http://${encodeURIComponent(username)}:${encodeURIComponent(password)}@${host}:${port}`;
 }
 
-export function configureTelegramProxy(proxyValue: string) {
+export function createTelegramProxyAgent(proxyValue: string) {
   const proxyUrl = toProxyUrl(proxyValue);
 
   if (!proxyUrl) {
-    return false;
+    return null;
   }
 
-  setGlobalDispatcher(new ProxyAgent(proxyUrl));
-  return true;
+  return new HttpsProxyAgent(proxyUrl);
 }

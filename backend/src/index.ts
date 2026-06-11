@@ -1,13 +1,13 @@
 import { createBot, setupBot } from "./bot";
 import { appConfig } from "./config";
 import { initDatabase } from "./lib/database";
-import { configureTelegramProxy } from "./lib/telegram-proxy";
+import { createTelegramProxyAgent } from "./lib/telegram-proxy";
 import { createServer } from "./server";
 
 async function bootstrap() {
   initDatabase();
 
-  const proxyEnabled = configureTelegramProxy(appConfig.TELEGRAM_PROXY);
+  const proxyEnabled = createTelegramProxyAgent(appConfig.TELEGRAM_PROXY) !== null;
 
   if (proxyEnabled) {
     console.log("Telegram proxy is enabled for local testing.");
