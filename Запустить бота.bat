@@ -6,7 +6,7 @@ echo ==============================
 echo   Dariga TG Bot launcher
 echo ==============================
 echo.
-echo Backend + Mini App will start in this window.
+echo Backend + Telegram bot will start in this window.
 echo Do not close this window while the bot is running.
 echo.
 
@@ -17,7 +17,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-call npm.cmd run dev
+call npm.cmd --prefix backend run dev
 
 echo.
 echo The process has stopped. Press any key to close this window.
