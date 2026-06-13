@@ -13,6 +13,11 @@ export type Booking = {
   status: string;
 };
 
+export type CreateBookingResult = {
+  booking: Booking;
+  syncWarning?: string;
+};
+
 export type AppConfig = {
   studioName: string;
   googleSheetsUrl: string;

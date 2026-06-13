@@ -10,6 +10,10 @@ import {
   getUserActiveBookings,
   type BookingDetails,
 } from "./services/booking-service";
+import {
+  rebuildGoogleSheetsFromDatabase,
+  syncCancelledBookingToGoogleSheets,
+} from "./services/google-sheets-sync-service";
 
 function isAdmin(config: AppConfig, telegramId: string) {
   return config.adminTelegramIds.includes(telegramId);
@@ -202,6 +206,21 @@ export function createBot(config: AppConfig) {
     await ctx.reply(formatAdminBookings(formatBookingDateHuman(bookingDate), bookings));
   });
 
+  bot.command("admin_sync", async (ctx) => {
+    if (!ctx.from || !isAdmin(config, String(ctx.from.id))) {
+      await ctx.reply("Эта команда доступна только администратору.");
+      return;
+    }
+
+    const result = await rebuildGoogleSheetsFromDatabase(config);
+
+    await ctx.reply(
+      result.synced
+        ? "Google таблица успешно пересобрана из локальной базы."
+        : result.warning ?? "Не удалось пересобрать Google таблицу."
+    );
+  });
+
   bot.callbackQuery("show_rules", async (ctx) => {
     await ctx.answerCallbackQuery();
     await ctx.reply(config.RULES_TEXT);
@@ -231,10 +250,18 @@ export function createBot(config: AppConfig) {
         String(ctx.from.id),
         isAdmin(config, String(ctx.from.id))
       );
+      const syncResult = await syncCancelledBookingToGoogleSheets(booking, config);
 
       await ctx.answerCallbackQuery({ text: "Бронь отменена." });
       await ctx.reply(
-        `Бронь отменена.\nДата: ${formatBookingDateHuman(booking.bookingDate)}\nВремя: ${booking.slotTimes.join(", ")}`
+        [
+          "Бронь отменена.",
+          `Дата: ${formatBookingDateHuman(booking.bookingDate)}`,
+          `Время: ${booking.slotTimes.join(", ")}`,
+          syncResult.warning ?? "",
+        ]
+          .filter(Boolean)
+          .join("\n")
       );
     } catch (error) {
       await ctx.answerCallbackQuery({

@@ -15,6 +15,7 @@ import {
   getUserBookings,
   listSlotsForDate,
 } from "./services/booking-service";
+import { syncBookingToGoogleSheets } from "./services/google-sheets-sync-service";
 
 const bookingRequestSchema = z.object({
   bookingDate: z.string().min(1),
@@ -110,6 +111,7 @@ export function createServer(bot: Bot, config: AppConfig) {
       customerName: body.customerName,
       customerPhone: body.customerPhone,
     });
+    const syncResult = await syncBookingToGoogleSheets(booking, config);
 
     await sendBookingConfirmation(bot, booking);
 
@@ -118,6 +120,7 @@ export function createServer(bot: Bot, config: AppConfig) {
     return {
       success: true,
       booking,
+      syncWarning: syncResult.warning,
     };
   });
 

@@ -11,3 +11,4 @@ backend/data/*.sqlite3
 npm-debug.log*
 .vercel
 mini-app/.vercel
+credentials.json

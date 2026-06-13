@@ -229,6 +229,20 @@ function getBookingDetailsById(bookingId: string) {
   return buildBookingDetails(booking, user, getSlotsByBookingId(bookingId));
 }
 
+function hydrateBookings(bookings: BookingRecord[]) {
+  return bookings.map((booking) => {
+    const user = db.prepare("SELECT * FROM users WHERE id = ?").get(booking.user_id) as
+      | UserRecord
+      | undefined;
+
+    if (!user) {
+      throw new BookingNotFoundError("Не найден пользователь брони.");
+    }
+
+    return buildBookingDetails(booking, user, getSlotsByBookingId(booking.id));
+  });
+}
+
 export function formatBookingDateHuman(bookingDate: string) {
   return format(new Date(`${bookingDate}T00:00:00`), "dd.MM.yyyy");
 }
@@ -389,9 +403,7 @@ export async function getUserBookings(telegramUserId: string) {
     )
     .all(user.id) as BookingRecord[];
 
-  return bookings.map((booking) =>
-    buildBookingDetails(booking, user, getSlotsByBookingId(booking.id))
-  );
+  return bookings.map((booking) => buildBookingDetails(booking, user, getSlotsByBookingId(booking.id)));
 }
 
 export async function getUserActiveBookings(telegramUserId: string) {
@@ -455,17 +467,7 @@ export async function getAdminBookingsForDate(bookingDate: string) {
     )
     .all(bookingDate) as BookingRecord[];
 
-  return bookings.map((booking) => {
-    const user = db.prepare("SELECT * FROM users WHERE id = ?").get(booking.user_id) as
-      | UserRecord
-      | undefined;
-
-    if (!user) {
-      throw new BookingNotFoundError("Не найден пользователь администратора.");
-    }
-
-    return buildBookingDetails(booking, user, getSlotsByBookingId(booking.id));
-  });
+  return hydrateBookings(bookings);
 }
 
 export async function getUpcomingAdminBookings(daysAhead = 7) {
@@ -482,15 +484,41 @@ export async function getUpcomingAdminBookings(daysAhead = 7) {
     )
     .all(today, limitDate) as BookingRecord[];
 
-  return bookings.map((booking) => {
-    const user = db.prepare("SELECT * FROM users WHERE id = ?").get(booking.user_id) as
-      | UserRecord
-      | undefined;
+  return hydrateBookings(bookings);
+}
 
-    if (!user) {
-      throw new BookingNotFoundError("Не найден пользователь администратора.");
-    }
+export async function getBookingsForDateRange(
+  startDate: string,
+  endDate: string,
+  includeCancelled = true
+) {
+  assertBookingDate(startDate);
+  assertBookingDate(endDate);
 
-    return buildBookingDetails(booking, user, getSlotsByBookingId(booking.id));
-  });
+  const bookings = db
+    .prepare(
+      `
+        SELECT * FROM bookings
+        WHERE booking_date >= ? AND booking_date <= ?
+        ${includeCancelled ? "" : "AND status != 'cancelled'"}
+        ORDER BY booking_date ASC, created_at ASC
+      `
+    )
+    .all(startDate, endDate) as BookingRecord[];
+
+  return hydrateBookings(bookings);
+}
+
+export async function getAllBookings(includeCancelled = true) {
+  const bookings = db
+    .prepare(
+      `
+        SELECT * FROM bookings
+        ${includeCancelled ? "" : "WHERE status != 'cancelled'"}
+        ORDER BY booking_date ASC, created_at ASC
+      `
+    )
+    .all() as BookingRecord[];
+
+  return hydrateBookings(bookings);
 }

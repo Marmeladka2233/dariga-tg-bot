@@ -111,15 +111,20 @@ function App() {
       setSubmitting(true);
       setError("");
 
-      await createBooking({
+      const result = await createBooking({
         bookingDate: selectedDate,
         slotTimes: selectedTimes,
         customerName,
         customerPhone,
       });
 
-      setInfoMessage("Данные переданы боту. Подтверждение уже отправлено в чат.");
-      await showTelegramAlert("Данные переданы боту. Подтверждение уже отправлено в чат.");
+      const syncWarning = result.syncWarning;
+      const successMessage = syncWarning
+        ? `Данные переданы боту. Подтверждение отправлено в чат. ${syncWarning}`
+        : "Данные переданы боту. Подтверждение уже отправлено в чат.";
+
+      setInfoMessage(successMessage);
+      await showTelegramAlert(successMessage);
       closeMiniApp();
     } catch (requestError) {
       setError(
@@ -146,22 +151,8 @@ function App() {
           className="secondary-button"
           onClick={() => openExternalLink(config?.googleSheetsUrl ?? "https://example.com")}
         >
-          Перейти в Google-таблицу
+          Посмотреть в Google таблице
         </button>
-      </section>
-
-      <section className="info-card">
-        <div>
-          <h2>Правила выбора</h2>
-          <p>За одну бронь можно выбрать только один день, но несколько несмежных часов.</p>
-        </div>
-        <div>
-          <h2>Часы работы</h2>
-          <p>
-            Свободные слоты показываются с {config?.slotStartHour ?? "08:00"} до{" "}
-            {config?.slotEndHour ?? "23:00"}.
-          </p>
-        </div>
       </section>
 
       <section className="card">
@@ -199,24 +190,28 @@ function App() {
 
         {loadingSlots ? <p className="muted">Загружаю доступные слоты...</p> : null}
 
-        <div className="slots-grid">
-          {slots.map((slot) => {
-            const selected = selectedTimes.includes(slot.time);
+        <div className="slots-grid" aria-live="polite">
+          {slots.length > 0 ? (
+            slots.map((slot) => {
+              const selected = selectedTimes.includes(slot.time);
 
-            return (
-              <button
-                key={slot.time}
-                type="button"
-                className={`slot-button ${selected ? "selected" : ""} ${
-                  slot.available ? "" : "disabled"
-                }`}
-                onClick={() => toggleSlot(slot)}
-                disabled={!slot.available}
-              >
-                {slot.time}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={slot.time}
+                  type="button"
+                  className={`slot-button ${selected ? "selected" : ""} ${
+                    slot.available ? "" : "disabled"
+                  }`}
+                  onClick={() => toggleSlot(slot)}
+                  disabled={!slot.available}
+                >
+                  {slot.time}
+                </button>
+              );
+            })
+          ) : (
+            <p className="slots-empty">На выбранную дату пока нет доступных слотов.</p>
+          )}
         </div>
 
         <div className="summary-box">

@@ -1,7 +1,35 @@
-import type { AppConfig, Booking, Slot } from "../types";
+import type { AppConfig, CreateBookingResult, Slot } from "../types";
 import { getTelegramWebApp } from "./telegram";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
+const API_OVERRIDE_STORAGE_KEY = "dariga_api_base_url";
+
+function normalizeBaseUrl(baseUrl: string) {
+  return baseUrl.replace(/\/+$/, "");
+}
+
+function getApiBaseUrl() {
+  const defaultBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
+
+  if (typeof window === "undefined") {
+    return normalizeBaseUrl(defaultBaseUrl);
+  }
+
+  const currentUrl = new URL(window.location.href);
+  const queryOverride = currentUrl.searchParams.get("apiBaseUrl");
+
+  if (queryOverride) {
+    window.localStorage.setItem(API_OVERRIDE_STORAGE_KEY, queryOverride);
+    return normalizeBaseUrl(queryOverride);
+  }
+
+  const storedOverride = window.localStorage.getItem(API_OVERRIDE_STORAGE_KEY);
+
+  if (storedOverride) {
+    return normalizeBaseUrl(storedOverride);
+  }
+
+  return normalizeBaseUrl(defaultBaseUrl);
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
@@ -15,7 +43,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
     ...init,
     headers,
   });
@@ -46,10 +74,17 @@ export async function createBooking(payload: {
   customerName: string;
   customerPhone: string;
 }) {
-  const response = await request<{ success: boolean; booking: Booking }>("/api/bookings", {
+  const response = await request<{
+    success: boolean;
+    booking: CreateBookingResult["booking"];
+    syncWarning?: string;
+  }>("/api/bookings", {
     method: "POST",
     body: JSON.stringify(payload),
   });
 
-  return response.booking;
+  return {
+    booking: response.booking,
+    syncWarning: response.syncWarning,
+  } satisfies CreateBookingResult;
 }

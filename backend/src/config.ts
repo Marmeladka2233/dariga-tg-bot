@@ -6,7 +6,14 @@ loadEnv();
 const envSchema = z.object({
   TELEGRAM_BOT_TOKEN: z.string().min(1),
   WEB_APP_URL: z.string().url().default("https://example.com"),
-  GOOGLE_SHEETS_URL: z.string().url().default("https://example.com"),
+  GOOGLE_SHEETS_URL: z.string().default(""),
+  GOOGLE_SHEETS_SYNC_ENABLED: z
+    .string()
+    .default("false")
+    .transform((value) => value.toLowerCase() === "true"),
+  GOOGLE_SHEETS_SPREADSHEET_ID: z.string().default(""),
+  GOOGLE_SHEETS_CREDENTIALS_PATH: z.string().default("../../credentials.json"),
+  GOOGLE_SHEETS_VIEW_DAYS: z.coerce.number().int().positive().default(30),
   API_PORT: z.coerce.number().int().positive().default(3000),
   DATABASE_PATH: z.string().min(1).default("./data/dariga.db"),
   TELEGRAM_PROXY: z.string().default(""),
@@ -32,9 +39,13 @@ const envSchema = z.object({
 });
 
 const env = envSchema.parse(process.env);
+const derivedGoogleSheetsUrl = env.GOOGLE_SHEETS_SPREADSHEET_ID
+  ? `https://docs.google.com/spreadsheets/d/${env.GOOGLE_SHEETS_SPREADSHEET_ID}/edit?usp=sharing`
+  : "https://example.com";
 
 export const appConfig = {
   ...env,
+  GOOGLE_SHEETS_URL: env.GOOGLE_SHEETS_URL || derivedGoogleSheetsUrl,
   adminTelegramIds: env.ADMIN_TELEGRAM_IDS.split(",")
     .map((item) => item.trim())
     .filter(Boolean),
