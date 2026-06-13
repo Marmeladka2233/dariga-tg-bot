@@ -14,6 +14,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers.set("Content-Type", "application/json");
   }
 
+  // Helps bypass intermediate warning pages returned by temporary HTTPS tunnels.
+  headers.set("bypass-tunnel-reminder", "true");
+
   let response: Response;
 
   try {
@@ -28,8 +31,37 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   if (!response.ok) {
-    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(payload?.error ?? "Не удалось выполнить запрос.");
+    const responseText = await response.text().catch(() => "");
+    const payload = responseText
+      ? ((() => {
+          try {
+            return JSON.parse(responseText) as { error?: string };
+          } catch {
+            return null;
+          }
+        })() as { error?: string } | null)
+      : null;
+
+    if (payload?.error) {
+      throw new Error(payload.error);
+    }
+
+    const lowerText = responseText.toLowerCase();
+
+    if (
+      response.status === 401 ||
+      response.status === 403 ||
+      lowerText.includes("loca.lt") ||
+      lowerText.includes("localtunnel") ||
+      lowerText.includes("tunnel") ||
+      lowerText.includes("<html")
+    ) {
+      throw new Error(
+        "Временный доступ к серверу бронирования устарел. Откройте бота заново через /start и нажмите свежую кнопку бронирования."
+      );
+    }
+
+    throw new Error(`Не удалось выполнить запрос. Код ответа: ${response.status}.`);
   }
 
   return response.json() as Promise<T>;
