@@ -26,7 +26,7 @@ const envSchema = z.object({
   ADMIN_TELEGRAM_IDS: z.string().default(""),
   ALLOW_DEV_AUTH: z
     .string()
-    .default("true")
+    .default("false")
     .transform((value) => value.toLowerCase() === "true"),
   DEV_TELEGRAM_USER_ID: z.string().default("100000001"),
   DEV_TELEGRAM_USERNAME: z.string().default("dariga_dev"),
