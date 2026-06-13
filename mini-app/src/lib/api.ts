@@ -1,35 +1,6 @@
 import type { AppConfig, CreateBookingResult, Slot } from "../types";
 import { getTelegramWebApp } from "./telegram";
-
-const API_OVERRIDE_STORAGE_KEY = "dariga_api_base_url";
-
-function normalizeBaseUrl(baseUrl: string) {
-  return baseUrl.replace(/\/+$/, "");
-}
-
-function getApiBaseUrl() {
-  const defaultBaseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000";
-
-  if (typeof window === "undefined") {
-    return normalizeBaseUrl(defaultBaseUrl);
-  }
-
-  const currentUrl = new URL(window.location.href);
-  const queryOverride = currentUrl.searchParams.get("apiBaseUrl");
-
-  if (queryOverride) {
-    window.localStorage.setItem(API_OVERRIDE_STORAGE_KEY, queryOverride);
-    return normalizeBaseUrl(queryOverride);
-  }
-
-  const storedOverride = window.localStorage.getItem(API_OVERRIDE_STORAGE_KEY);
-
-  if (storedOverride) {
-    return normalizeBaseUrl(storedOverride);
-  }
-
-  return normalizeBaseUrl(defaultBaseUrl);
-}
+import { getApiBaseUrl } from "./runtime-config";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const headers = new Headers(init?.headers);
@@ -43,10 +14,18 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(`${getApiBaseUrl()}${path}`, {
-    ...init,
-    headers,
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${getApiBaseUrl()}${path}`, {
+      ...init,
+      headers,
+    });
+  } catch {
+    throw new Error(
+      "Не удалось связаться с сервером бронирования. Проверьте, что бот запущен и временный HTTPS-доступ активен."
+    );
+  }
 
   if (!response.ok) {
     const payload = (await response.json().catch(() => null)) as { error?: string } | null;

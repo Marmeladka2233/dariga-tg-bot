@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import "./App.css";
 import { createBooking, getAppConfig, getSlotsByDate } from "./lib/api";
+import { getGoogleSheetsUrl } from "./lib/runtime-config";
 import {
   closeMiniApp,
   initTelegramWebApp,
@@ -45,6 +46,7 @@ function App() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [error, setError] = useState("");
   const [infoMessage, setInfoMessage] = useState("");
+  const [slotsError, setSlotsError] = useState("");
 
   useEffect(() => {
     initTelegramWebApp();
@@ -52,7 +54,7 @@ function App() {
     getAppConfig()
       .then(setConfig)
       .catch((requestError) => {
-        setError(
+        setInfoMessage(
           requestError instanceof Error
             ? requestError.message
             : "Не удалось загрузить настройки приложения."
@@ -66,13 +68,14 @@ function App() {
     }
 
     setLoadingSlots(true);
-    setError("");
+    setSlotsError("");
     setSelectedTimes([]);
+    setSlots([]);
 
     getSlotsByDate(selectedDate)
       .then(setSlots)
       .catch((requestError) => {
-        setError(
+        setSlotsError(
           requestError instanceof Error
             ? requestError.message
             : "Не удалось загрузить расписание."
@@ -83,6 +86,7 @@ function App() {
 
   const selectedDateLabel =
     dateOptions.find((item) => item.value === selectedDate)?.label ?? selectedDate;
+  const googleSheetsUrl = config?.googleSheetsUrl || getGoogleSheetsUrl();
 
   function toggleSlot(slot: Slot) {
     if (!slot.available) {
@@ -142,16 +146,13 @@ function App() {
       <section className="hero-card">
         <p className="eyebrow">Dariga Booking</p>
         <h1>Бронирование студии</h1>
-        <p className="hero-text">
-          Сначала можно открыть таблицу и посмотреть расписание, а затем вернуться сюда и
-          забронировать свободные часы.
-        </p>
         <button
           type="button"
           className="secondary-button"
-          onClick={() => openExternalLink(config?.googleSheetsUrl ?? "https://example.com")}
+          onClick={() => openExternalLink(googleSheetsUrl)}
+          disabled={!googleSheetsUrl}
         >
-          Посмотреть в Google таблице
+          Посмотреть развернутое расписание в Google таблице
         </button>
       </section>
 
@@ -164,7 +165,7 @@ function App() {
           <span className="pill">30 дней вперед</span>
         </div>
 
-        <div className="date-list">
+        <div className="date-list" role="tablist" aria-label="Выбор даты">
           {dateOptions.map((dateOption) => (
             <button
               key={dateOption.value}
@@ -189,6 +190,7 @@ function App() {
         </div>
 
         {loadingSlots ? <p className="muted">Загружаю доступные слоты...</p> : null}
+        {slotsError ? <p className="status error compact">{slotsError}</p> : null}
 
         <div className="slots-grid" aria-live="polite">
           {slots.length > 0 ? (
@@ -209,9 +211,9 @@ function App() {
                 </button>
               );
             })
-          ) : (
+          ) : !loadingSlots && !slotsError ? (
             <p className="slots-empty">На выбранную дату пока нет доступных слотов.</p>
-          )}
+          ) : null}
         </div>
 
         <div className="summary-box">

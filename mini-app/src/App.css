@@ -34,7 +34,6 @@
   text-transform: uppercase;
 }
 
-.hero-text,
 .muted {
   color: var(--text-soft);
 }
@@ -57,12 +56,31 @@
 }
 
 .date-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  display: flex;
   gap: 10px;
-  max-height: 230px;
-  overflow-y: auto;
-  padding-right: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+  margin: 0 -2px;
+  scrollbar-width: thin;
+}
+
+.date-list::-webkit-scrollbar {
+  height: 6px;
+}
+
+.date-list::-webkit-scrollbar-thumb {
+  background: #f2b9d3;
+  border-radius: 999px;
+}
+
+.date-list::-webkit-scrollbar-track {
+  background: #fff3fb;
+  border-radius: 999px;
+}
+
+.date-chip {
+  flex: 0 0 96px;
 }
 
 .date-chip,
@@ -237,6 +255,10 @@
   color: #9e2d7d;
 }
 
+.status.compact {
+  margin-bottom: 16px;
+}
+
 @media (hover: hover) {
   .date-chip:hover,
   .slot-button:hover,
@@ -252,8 +274,7 @@
   }
 
   .date-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-height: none;
+    padding-bottom: 6px;
   }
 
   .slots-grid {
@@ -278,6 +299,10 @@
 
   .slots-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .date-chip {
+    flex-basis: 88px;
   }
 
   .slot-button {

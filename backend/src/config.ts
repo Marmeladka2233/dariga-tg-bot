@@ -6,6 +6,12 @@ loadEnv();
 const envSchema = z.object({
   TELEGRAM_BOT_TOKEN: z.string().min(1),
   WEB_APP_URL: z.string().url().default("https://example.com"),
+  PUBLIC_API_BASE_URL: z.string().default(""),
+  PUBLIC_API_TUNNEL_ENABLED: z
+    .string()
+    .default("false")
+    .transform((value) => value.toLowerCase() === "true"),
+  PUBLIC_API_TUNNEL_SUBDOMAIN: z.string().default(""),
   GOOGLE_SHEETS_URL: z.string().default(""),
   GOOGLE_SHEETS_SYNC_ENABLED: z
     .string()
@@ -41,7 +47,7 @@ const envSchema = z.object({
 const env = envSchema.parse(process.env);
 const derivedGoogleSheetsUrl = env.GOOGLE_SHEETS_SPREADSHEET_ID
   ? `https://docs.google.com/spreadsheets/d/${env.GOOGLE_SHEETS_SPREADSHEET_ID}/edit?usp=sharing`
-  : "https://example.com";
+  : "";
 
 export const appConfig = {
   ...env,
